@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Builders Digest — 2026.04.25</title>
+<style>
+  :root {
+    --paper: #f8f6f1;
+    --white: #ffffff;
+    --ink: #1c1a16;
+    --ink2: #3a3830;
+    --muted: #92908a;
+    --line: #dedad2;
+    --line2: #eceae4;
+    --red: #9b3a2f;
+    --red-bg: #fdf4f3;
+    --tag: #f2f0ea;
+    --tag-text: #6a6860;
+    --green: #3a6b4f;
+    --green-bg: #f3f8f5;
+    --blue: #2f4d7a;
+    --blue-bg: #f3f6fb;
+    --gold: #6a5420;
+    --gold-bg: #fdf9ef;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Hiragino Sans GB', 'PingFang SC', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.85;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── layout ── */
+  .container { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── masthead ── */
+  .masthead {
+    border-bottom: 1px solid var(--ink);
+    padding: 48px 0 28px;
+    margin-bottom: 0;
+  }
+  .masthead-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .masthead-left {}
+  .pub-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .pub-title {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+  .pub-title em {
+    font-style: normal;
+    color: var(--red);
+  }
+  .masthead-right {
+    text-align: right;
+  }
+  .pub-date {
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  .pub-meta {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ── guide strip ── */
+  .guide-strip {
+    background: var(--ink);
+    color: #fff;
+    padding: 10px 0;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+  .guide-strip-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .guide-item { display: flex; align-items: center; gap: 7px; }
+  .guide-dot {
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  }
+  .dot-orig { background: #aaa; }
+  .dot-explain { background: #7ab0e8; }
+  .dot-kid { background: #e8c97a; }
+  .guide-item span { color: rgba(255,255,255,0.75); }
+
+  /* ── toc ── */
+  .toc-block {
+    border-bottom: 1px solid var(--line);
+    padding: 28px 0;
+  }
+  .toc-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+  .toc-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0;
+  }
+  .toc-list li {
+    border-top: 1px solid var(--line2);
+    padding: 7px 0;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toc-list li:hover { background: var(--line2); }
+  .toc-num {
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 20px;
+  }
+  .toc-list a {
+    color: var(--ink2);
+    text-decoration: none;
+  }
+  .toc-list a:hover { color: var(--red); }
+
+  /* ── section header ── */
+  .section-head {
+    padding: 40px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 1px;
+  }
+  .section-line { flex: 1; height: 1px; background: var(--ink); }
+  .section-title {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ink);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* ── entry card ── */
+  .entry {
+    border-bottom: 1px solid var(--line);
+    padding: 32px 0;
+  }
+  .entry:last-child { border-bottom: 1px solid var(--ink); }
+
+  .entry-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .entry-num {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .entry-author {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.2px;
+  }
+  .entry-role {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 3px;
+    letter-spacing: 0.2px;
+  }
+  .entry-link {
+    color: var(--red);
+    text-decoration: none;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--red);
+    padding-bottom: 1px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .entry-link:hover { opacity: 0.7; }
+
+  /* ── layer boxes ── */
+  .layer {
+    margin-bottom: 16px;
+    padding: 16px 18px;
+    border-radius: 2px;
+  }
+  .layer:last-child { margin-bottom: 0; }
+  .layer-orig {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--muted);
+  }
+  .layer-explain {
+    background: var(--blue-bg);
+    border: 1px solid #d8e4f2;
+    border-left: 3px solid var(--blue);
+  }
+  .layer-kid {
+    background: var(--gold-bg);
+    border: 1px solid #ece5c8;
+    border-left: 3px solid var(--gold);
+  }
+
+  .layer-label {
+    font-size: 9.5px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .lbl-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .lbl-orig  .lbl-dot { background: var(--muted); }
+  .lbl-orig  { color: var(--muted); }
+  .lbl-explain .lbl-dot { background: var(--blue); }
+  .lbl-explain { color: var(--blue); }
+  .lbl-kid .lbl-dot { background: var(--gold); }
+  .lbl-kid { color: var(--gold); }
+
+  .layer-text {
+    font-size: 14px;
+    line-height: 1.9;
+    color: var(--ink2);
+  }
+  .layer-text a {
+    color: var(--red);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(155,58,47,0.3);
+  }
+  .layer-text a:hover { border-bottom-color: var(--red); }
+  .layer-text strong { color: var(--ink); font-weight: 600; }
+  .layer-text ul { padding-left: 18px; }
+  .layer-text li { margin-bottom: 4px; }
+
+  /* glossary */
+  .g {
+    border-bottom: 1px dashed var(--muted);
+    cursor: help;
+    color: inherit;
+    position: relative;
+  }
+  .g:hover::after {
+    content: attr(data-def);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 0;
+    background: var(--ink);
+    color: #f0ede6;
+    padding: 10px 14px;
+    border-radius: 3px;
+    font-size: 12.5px;
+    white-space: normal;
+    min-width: 240px;
+    max-width: 320px;
+    z-index: 100;
+    line-height: 1.6;
+    pointer-events: none;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  }
+
+  /* source links */
+  .source-chips {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    font-size: 11px;
+    color: var(--muted);
+    text-decoration: none;
+    border: 1px solid var(--line);
+    padding: 3px 10px;
+    border-radius: 2px;
+    letter-spacing: 0.3px;
+    transition: all 0.15s;
+  }
+  .chip:hover {
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  /* ── footer ── */
+  .footer {
+    border-top: 1px solid var(--ink);
+    padding: 32px 0 64px;
+    margin-top: 48px;
+  }
+  .footer-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .footer-text {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.3px;
+  }
+  .footer-text a { color: var(--muted); border-bottom: 1px solid var(--line); text-decoration: none; }
+  .footer-text a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+  @media (max-width: 560px) {
+    .masthead-inner { flex-direction: column; align-items: flex-start; }
+    .masthead-right { text-align: left; }
+    .pub-title { font-size: 22px; }
+    .guide-strip-inner { gap: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-left">
+      <div class="pub-label">Daily Digest · AI Builders</div>
+      <div class="pub-title">AI 动态日报 <em>/</em> 小白友好版</div>
+    </div>
+    <div class="masthead-right">
+      <div class="pub-date">2026.04.25</div>
+      <div class="pub-meta">14 条内容 · 双语 · 含名词解释</div>
+    </div>
+  </div>
+</header>
+
+<!-- GUIDE STRIP -->
+<div class="guide-strip">
+  <div class="guide-strip-inner">
+    <div class="guide-item">
+      <div class="guide-dot dot-orig"></div>
+      <span>原文摘要</span>
+    </div>
+    <div class="guide-item">
+      <div class="guide-dot dot-explain"></div>
+      <span>小白解读</span>
+    </div>
+    <div class="guide-item">
+      <div class="guide-dot dot-kid"></div>
+      <span>10岁版</span>
+    </div>
+    <div class="guide-item" style="margin-left:auto; opacity:0.5;">
+      <span>虚线下划线 = 专有名词，悬停查看解释</span>
+    </div>
+  </div>
+</div>
+
+<!-- TOC -->
+<div class="container">
+  <div class="toc-block">
+    <div class="toc-label">今日目录</div>
+    <ul class="toc-list">
+      <li><span class="toc-num">01</span><a href="#sama">GPT-5.5 正式发布</a></li>
+      <li><span class="toc-num">02</span><a href="#levie">AI 到底抢不抢工作？</a></li>
+      <li><span class="toc-num">03</span><a href="#ryolu">Cursor 切换 GPT-5.5</a></li>
+      <li><span class="toc-num">04</span><a href="#joshwoodward">NotebookLM 自动分类</a></li>
+      <li><span class="toc-num">05</span><a href="#petergyang">15分钟做出 Star Fox</a></li>
+      <li><span class="toc-num">06</span><a href="#steipete">GPT-5.5 角色感升级</a></li>
+      <li><span class="toc-num">07</span><a href="#danshipper">AI知识 vs 人类学习速度</a></li>
+      <li><span class="toc-num">08</span><a href="#nanyu">设计 = 意图，不是图片</a></li>
+      <li><span class="toc-num">09</span><a href="#amasad">Replit 导入 Vercel 应用</a></li>
+      <li><span class="toc-num">10</span><a href="#mattturck">Cohere + Aleph Alpha 合并</a></li>
+      <li><span class="toc-num">11</span><a href="#swyx">今天的技能=明天的训练目标</a></li>
+      <li><span class="toc-num">12</span><a href="#adityaag">后提示词时代将至</a></li>
+      <li><span class="toc-num">13</span><a href="#anthropic-blog">Anthropic 大脑与双手分离</a></li>
+      <li><span class="toc-num">14</span><a href="#nopriors">SAP CTO：AI是商业模式转型</a></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ── SECTION: X / TWITTER ── -->
+<div class="container">
+  <div class="section-head">
+    <div class="section-line"></div>
+    <div class="section-title">X / Twitter 动态</div>
+    <div class="section-line"></div>
+  </div>
+</div>
+
+<!-- 01 SAM ALTMAN -->
+<div class="container">
+<div id="sama" class="entry">
+  <div class="entry-head">
+    <div>
+      <div class="entry-num">No. 01</div>
+      <div class="entry-author">Sam Altman</div>
+      <div class="entry-role">CEO @ OpenAI</div>
+    </div>
+  </div>
+
+  <div class="layer layer-orig">
+    <div class="layer-label lbl-orig"><span class="lbl-dot"></span>原文摘要</div>
+    <div class="layer-text">
+      Sam Altman 宣布 <span class="g" data-def="GPT-5.5 是 OpenAI 最新发布的 AI 模型；API 是让开发者把这个 AI 接入自己 App 的接口，就像电源插座。">GPT-5.5 和 GPT-5.5 Pro 正式开放 API</span>。他在周末写道："这是很棒的一周，为团队骄傲，继续 building！"
+      <div class="source-chips">
+        <a class="chip" href="https://x.com/sama/status/2047787124846653895" target="_blank">↗ API 发布公告</a>
+        <a class="chip" href="https://x.com/sama/status/2047823357635354814" target="_blank">↗ 周末感言</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer layer-explain">
+    <div class="layer-label lbl-explain"><span class="lbl-dot"></span>小白解读</div>
+    <div class="layer-text">
+      OpenAI 是做 ChatGPT 的那家公司，Sam Altman 是它的老板。GPT-5.5 是他们最新推出的 AI 大脑。<br><br>
+      API 开放 = 任何开发者现在都可以把 GPT-5.5 嵌入自己做的 App 里。就像苹果发布 iPhone 17，同时宣布开发者可以在上面做 App——整个生态都会跟着动起来。
+    </div>
+  </div>
+
+  <div class="layer layer-kid">
+    <div class="layer-label lbl-kid"><span class="lbl-dot"></span>10 岁版</div>
+    <div class="layer-text">
+      ChatGPT 的老板说："我们有了更聪明的 AI 助手，现在所有做 App 的人都可以用它了！"就像新乐高出来了，所有小朋友都可以用新积木搭东西。
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 02 AARON LEVIE -->
+<div class="container">
+<div id="levie" class="entry">
+  <div class="entry-head">
+    <div>
+      <div class="entry-num">No. 02</div>
+      <div class="entry-author">Aaron Levie</div>
+      <div class="entry-role">CEO @ Box（企业云存储平台）</div>
+    </div>
+  </div>
+
+  <div class="layer layer-orig">
+    <div class="layer-label lbl-orig"><span class="lbl-dot"></span>原文摘要</div>
+    <div class="layer-text">
+      Levie 用"<span class="g" data-def="杰文斯悖论：历史上蒸汽机越省煤，总煤耗反而增加了——因为煤便宜了之后大家用得更多。同理：AI 让每个人效率更高，结果能做的工作更多，需要的人反而更多。">杰文斯悖论</span>"反驳"AI 抢工作"：AI 越强，企业能承接的任务越多，反而需要雇更多人。以前请不起工程师的小公司，现在能雇"顶五个人"的工程师；销售自动化了，反而要雇更多销售跟进更多线索。"这会以越来越出人意料的方式发生。"
+      <div class="source-chips">
+        <a class="chip" href="https://x.com/levie/status/2047747142308274645" target="_blank">↗ 原推</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer layer-explain">
+    <div class="layer-label lbl-explain"><span class="lbl-dot"></span>小白解读</div>
+    <div class="layer-text">
+      很多人担心 AI 会抢走工作。Levie 的反驳：当工具更厉害更便宜，人们不是用得更少，而是做更多的事。<br><br>
+      • 以前请不起工程师的小公司 → 有了 AI 助力，终于可以雇 1 个顶 5 个的工程师 → 工程师需求增加<br>
+      • 销售团队自动化找客户 → 每人能跟进更多线索 → 公司需要更多销售<br><br>
+      这个观点乐观，但存在争议——不是每种工作都会这样，具体职业需要具体分析。
+    </div>
+  </div>
+
+  <div class="layer layer-kid">
+    <div class="layer-label lbl-kid"><span class="lbl-dot"></span>10 岁版</div>
+    <div class="layer-text">
+      有人担心机器人会抢走大人的工作。但有人说：机器人越厉害，大人能做的事越多，反而需要更多大人！就像有了更好的锅，厨师不是失业，而是可以做更多菜、开更多餐厅。
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 03 RYO LU -->
+<div class="container">
+<div id="ryolu" class="entry">
+  <div class="entry-head">
+    <div>
+      <div class="entry-num">No. 03</div>
+      <div class="entry-author">Ryo Lu</div>
+      <div class="entry-role">设计师 @ Cursor（AI 代码编辑器）</div>
+    </div>
+  </div>
+
+  <div class="layer layer-orig">
+    <div class="layer-label lbl-orig"><span class="lbl-dot"></span>原文摘要</div>
+    <div class="layer-text">
+      Cursor 设计师 Ryo Lu 宣布完全切换到 GPT-5.5 + <span class="g" data-def="Composer 2 是 Cursor 编辑器里的核心 AI 写代码功能，可以理解整个项目并自动写、改代码。">Composer 2</span>，称其为"智能、速度、成本的完美平衡"。还推介了新命令 <span class="g" data-def="/multitask 是 Cursor 的新功能，让 AI 同时执行多个任务，不用等上一个完成再开始下一个。">/multitask</span>——可同时处理多件事，不排队。
+      <div class="source-chips">
+        <a class="chip" href="https://x.com/ryolu_/status/2047879353313431649" target="_blank">↗ GPT-5.5 切换</a>
+        <a class="chip" href="https://x.com/ryolu_/status/2047766831105220799" target="_blank">↗ /multitask 介绍</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer layer-explain">
+    <div class="layer-label lbl-explain"><span class="lbl-dot"></span>小白解读</div>
+    <div class="layer-text">
+      <span class="g" data-def="Cursor 是目前程序员最爱用的 AI 编程工具，可以帮你写代码、解释代码、找 bug，相当于一个 24 小时在线的编程助手。">Cursor</span> 是现在最流行的 AI 编程工具，Ryo Lu 是负责它界面外观的设计师。<br><br>
+      他的消息释放两个信号：① GPT-5.5 已足够好，连内部人员都切换了；② /multitask 让 AI 可以并行工作，以前是排队一件件来，现在可以同时跑多个，效率大幅提升。
+    </div>
+  </div>
+
+  <div class="layer layer-kid">
+    <div class="layer-label lbl-kid"><span class="lbl-dot"></span>10 岁版</div>
+    <div class="layer-text">
+      有一个帮程序员写代码的神奇 App 叫 Cursor，它的设计师说：我们换了更聪明的 AI，还加了新功能——可以同时做好几件事，不用一件一件排队等了！
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 04 JOSH WOODWARD -->
+<div class="container">
+<div id="joshwoodward" class="entry">
+  <div class="entry-head">
+    <div>
+      <div class="entry-num">No. 04</div>
+      <div class="entry-author">Josh Woodward</div>
+      <div class="entry-role">VP @ Google Labs / Gemini / Google AI Studio</div>
+    </div>
+  </div>
+
+  <div class="layer layer-orig">
+    <div class="layer-label lbl-orig"><span class="lbl-dot"></span>原文摘要</div>
+    <div class="layer-text">
+      Google VP Josh Woodward 宣布 <span class="g" data-def="NotebookLM 是 Google 的 AI 笔记工具。你可以上传文件、PDF、网页，它会帮你总结、问答、甚至生成播客音频。">NotebookLM</span> 新增自动标记和分类 sources 功能——方便管理大量研究资料。
+      <div class="source-chips">
+        <a class="chip" href="https://x.com/joshwoodward/status/2047795981534847413" target="_blank">↗ 原推</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer layer-explain">
+    <div class="layer-label lbl-explain"><span class="lbl-dot"></span>小白解读</div>
+    <div class="layer-text">
+      NotebookLM 是 Google 做的"AI 超级笔记本"——把资料扔进去，它帮你整理、总结、回答问题，还能生成播客音频。<br><br>
+      这次更新：以前扔了几十个文件得自己记哪个是哪个，现在它会自动贴标签、分类。对学生、研究者、需要处理大量资料的人很实用。
+    </div>
+  </div>
+
+  <div class="layer layer-kid">
+    <div class="layer-label lbl-kid"><span class="lbl-dot"></span>10 岁版</div>
+    <div class="layer-text">
+      Google 有个学习助手，你可以把书和文章放进去让它帮你解释。现在它还会自动给你的资料贴标签分类，就像自动帮你把玩具按种类放进不同的收纳盒！
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 05 PETER YANG -->
+<div class="container">
+<div id="petergyang" class="entry">
+  <div class="entry-head">
+    <div>
+      <div class="entry-num">No. 05</div>
+      <div class="entry-author">Peter Yang</div>
+      <div class="entry-role">产品负责人 @ Roblox（游戏平台）</div>
+    </div>
+  </div>
+
+  <div class="layer layer-orig">
+    <div class="layer-label lbl-orig"><span class="lbl-dot"></span>原文摘要</div>
+    <div class="layer-text">
+      Peter Yang 用 GPT-5.5 + <span class="g" data-def="Codex 是 OpenAI 的代码生成模型，你用自然语言描述功能，它帮你自动写出代码。">Codex</span>，只花 15 分钟对话就做出了一个 Star Fox 克隆游戏。更惊人的是：AI 做完之后开始自己玩自己做的游戏，在"play testing 自己的作品"。
+      <div class="source-chips">
+        <a class="chip" href="https://x.com/petergyang/status/2047882568520102226" target="_blank">↗ Star Fox 演示</a>
+        <a class="chip" href="https://x.com/petergyang/status/2047882580603899915" target="_blank">↗ 自己玩自己的游戏</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer layer-explain">
+    <div class="layer-label lbl-explain"><span class="lbl-dot"></span>小白解读</div>
+    <div class="layer-text">
+      Star Fox 是任天堂 1993 年的经典飞行射击游戏，做一个类似的游戏通常需要几个工程师花几周时间。<br><br>
+      现在：用自然语言跟 AI 说话，15 分钟就做出来了。这叫 <span class="g" data-def="Agentic Coding：让 AI 不只回答问题，而是主动执行一系列步骤来完成复杂任务——写代码、测试、修 bug，一条龙搞定。">agentic coding</span>，AI 自主完成从理解需求到写代码的全流程。<br><br>
+      "AI 自己玩自己做的游戏"——不只会做，还能主动测试自己的产出，这是非常新的 AI 行为。
+    </div>
+  </div>
+
+  <div class="layer layer-kid">
+    <div class="layer-label lbl-kid"><span class="lbl-dot"></span>10 岁版</div>
+    <div class="layer-text">
+      一个大人用最新的 AI 说了 15 分钟话，AI 就自动帮他做出了一个电子游戏！做完之后 AI 还自己开始玩这个游戏，就像乐高积木自己把自己拼好，然后自己玩起来了！
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 06 PETER STEINBERGER -->
+<div class="container">
+<div id="steipete" class="entry">
+  <div class="entry-head">
+    <div>
+      <div class="entry-num">No. 06</div>
+      <div class="entry-author">Peter Steinberger</div>
+      <div class="entry-role">OpenClaw + OpenAI 开发者</div>
+    </div>
+  </div>
+
+  <div class="layer layer-orig">
+    <div class="layer-label lbl-orig"><span class="lbl-dot"></span>原文摘要</div>
+    <div class="layer-text">
+      评价 GPT-5.5"在角色塑造上上了一个台阶"。同时发布了 <span class="g" data-def="discrawl 是一个命令行工具，可以爬取 Discord 服务器或 DM 中的内容，用于分析或存档。Discord 是程序员和 AI 社区常用的即时通讯软件。">discrawl 0.6.0</span>——新增无需特殊登录技巧即可读取 Discord DM 功能，刻意没有加写入功能：「给人类发垃圾内容是不道德的。」
+      <div class="source-chips">
+        <a class="chip" href="https://x.com/steipete/status/2047871519762567468" target="_blank">↗ GPT-5.5 评价</a>
+        <a class="chip" href="https://x.com/steipete/status/2047797210427859450" target="_blank">↗ discrawl 发布</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer layer-explain">
+    <div class="layer-label lbl-explain"><span class="lbl-dot"></span>小白解读</div>
+    <div class="layer-text">
+      "角色塑造"：指 AI 模型的个性是否一致、有吸引力。GPT-5.5 被评价为"人感更强"，跟它聊天更像是在跟真人对话，而不是冷冰冰的问答机器。<br><br>
+      discrawl 工具有意不加发消息的功能——防止被用来发垃圾信息。这个设计决定本身值得关注：开发者的道德边界在哪里，越来越重要。
+    </div>
+  </div>
+
+  <div class="layer layer-kid">
+    <div class="layer-label lbl-kid"><span class="lbl-dot"></span>10 岁版</div>
+    <div class="layer-text">
+      GPT-5.5 说话越来越像真人了！另外有个程序员做了个工具可以读群聊记录，但他特意不让这个工具发消息，因为他说不能让机器人骚扰别人——这个程序员很有良心！
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 07 DAN SHIPPER -->
+<div class="container">
+<div id="danshipper" class="entry">
+  <div class="entry-head">
+    <div>
+      <div class="entry-num">No. 07</div>
+      <div class="entry-author">Dan Shipper</div>
+      <div class="entry-role">CEO @ Every（AI 写作媒体平台）</div>
+    </div>
+  </div>
+
+  <div class="layer layer-orig">
+    <div class="layer-label lbl-orig"><span class="lbl-dot"></span>原文摘要</div>
+    <div class="layer-text">
+      「任何 AI 的知识都超过任何单个人类。但任何单个人类的学习速度都超过任何 AI。」<br><br>
+      另：他用 NotebookLM 从一本正在读的书一次性生成音频，震惊程度只用了一句"holy fuckin shit"来表达。
+      <div class="source-chips">
+        <a class="chip" href="https://x.com/danshipper/status/2047797874600161334" target="_blank">↗ AI vs 人类学习</a>
+        <a class="chip" href="https://x.com/danshipper/status/2047674383469093079" target="_blank">↗ NotebookLM 体验</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer layer-explain">
+    <div class="layer-label lbl-explain"><span class="lbl-dot"></span>小白解读</div>
+    <div class="layer-text">
+      这句话值得细品：<br><br>
+      ✦ AI 知识多——它读过几乎所有互联网上的文字，知道的东西无比广博<br>
+      ✦ 人类学习快——你今天看了一只有趣的猫、被老板骂了、失恋了，这些鲜活体验会立刻改变你的认知。AI 没有这种「活生生的体验」，它的知识在训练结束那一刻就冻住了。<br><br>
+      这个视角告诉我们：人的竞争优势不是「知道得更多」，而是「活得更快」——快速从现实体验中学习和调整。
+    </div>
+  </div>
+
+  <div class="layer layer-kid">
+    <div class="layer-label lbl-kid"><span class="lbl-dot"></span>10 岁版</div>
+    <div class="layer-text">
+      AI 就像一本超厚的百科全书，知道很多很多事。但小朋友会把手伸进水里感受冷热、会因为摔跤学会平衡——这种「活着的学习」是 AI 没有的！人类的优势是：每天都在学新东西，AI 不行。
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 08 NAN YU -->
+<div class="container">
+<div id="nanyu" class="entry">
+  <div class="entry-head">
+    <div>
+      <div class="entry-num">No. 08</div>
+      <div class="entry-author">Nan Yu</div>
+      <div class="entry-role">Head of Product @ Linear（项目管理工具）</div>
+    </div>
+  </div>
+
+  <div class="layer layer-orig">
+    <div class="layer-label lbl-orig"><span class="lbl-dot"></span>原文摘要</div>
+    <div class="layer-text">
+      「设计的核心是理解，不是产出。」设计是一种意图——不是图像或原型。没有意图的产出就是幻觉。他将这和 <span class="g" data-def="Behance 和 Dribbble 是设计师展示作品的平台，充满精美的 App 界面概念图，但其中很多从未被实际开发，只是好看的视觉「幻觉」。">Behance / Dribbble</span> 上 pre-AI 时代大量的概念图挂钩：「全是幻觉。」
+      <div class="source-chips">
+        <a class="chip" href="https://x.com/thenanyu/status/2047751915271020920" target="_blank">↗ 设计即意图</a>
+        <a class="chip" href="https://x.com/thenanyu/status/2047758400948408831" target="_blank">↗ 幻觉设计</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer layer-explain">
+    <div class="layer-label lbl-explain"><span class="lbl-dot"></span>小白解读</div>
+    <div class="layer-text">
+      在 AI 时代，生成一张漂亮的 App 界面只需要几秒钟。这让「设计」面临严峻拷问：<br><br>
+      ✦ 以前：设计师花几天画出漂亮界面，叫「有设计感」<br>
+      ✦ 现在：AI 几秒就能生成，那这种产出有什么独特价值？<br><br>
+      Nan Yu 的答案：真正的设计是「你理解了用户的问题，并用产品解决它」——那个理解和决策过程才是设计。美丽的图片只是副产品。AI 时代这个区分变得更加重要。
+    </div>
+  </div>
+
+  <div class="layer layer-kid">
+    <div class="layer-label lbl-kid"><span class="lbl-dot"></span>10 岁版</div>
+    <div class="layer-text">
+      画一栋漂亮的房子不等于建了一栋房子。设计是想清楚「这个房子要住什么样的人、他们需要什么」——然后再画。只是画得好看但没想清楚，那只是一张没用的图。
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 09 AMJAD MASAD -->
+<div class="container">
+<div id="amasad" class="entry">
+  <div class="entry-head">
+    <div>
+      <div class="entry-num">No. 09</div>
+      <div class="entry-author">Amjad Masad</div>
+      <div class="entry-role">CEO @ Replit（云端编程平台）</div>
+    </div>
+  </div>
+
+  <div class="layer layer-orig">
+    <div class="layer-label lbl-orig"><span class="lbl-dot"></span>原文摘要</div>
+    <div class="layer-text">
+      Replit CEO Amjad Masad 宣布可以通过几次点击将 <span class="g" data-def="Vercel 和 Lovable 都是「vibe coding」热门平台，让你用自然语言描述想要什么，AI 帮你生成完整 App，无需写代码。">Vercel 或 Lovable</span> 应用导入 Replit——直接降低 vibe-coding 生态各平台之间的迁移摩擦。
+      <div class="source-chips">
+        <a class="chip" href="https://x.com/amasad/status/2047747978690232550" target="_blank">↗ 原推</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer layer-explain">
+    <div class="layer-label lbl-explain"><span class="lbl-dot"></span>小白解读</div>
+    <div class="layer-text">
+      现在有很多「零代码 AI 建站」平台：Vercel、Lovable、Replit 各有特色，用户经常需要在多个平台之间迁移项目。<br><br>
+      Replit 这个功能说白了是：你在 Vercel 或 Lovable 上做了个 App，现在可以一键搬到 Replit 继续开发，不用重新搭环境。这场 vibe-coding 平台大战正在打得火热，谁能让用户「进来就不想走」才是关键。
+    </div>
+  </div>
+
+  <div class="layer layer-kid">
+    <div class="layer-label lbl-kid"><span class="lbl-dot"></span>10 岁版</div>
+    <div class="layer-text">
+      有几个平台可以用说话的方式做 App。现在其中一个叫 Replit 的说：你在别的平台做的 App，可以搬到我这里继续做！就像可以把 A 积木店买的积木带到 B 积木店一起玩！
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 10 MATT TURCK -->
+<div class="container">
+<div id="mattturck" class="entry">
+  <div class="entry-head">
+    <div>
+      <div class="entry-num">No. 10</div>
+      <div class="entry-author">Matt Turck</div>
+      <div class="entry-role">VC @ FirstMark Capital（风险投资）</div>
+    </div>
+  </div>
+
+  <div class="layer layer-orig">
+    <div class="layer-label lbl-orig"><span class="lbl-dot"></span>原文摘要</div>
+    <div class="layer-text">
+      <span class="g" data-def="Cohere 是加拿大 AI 公司，专注企业 AI；Aleph Alpha 是德国 AI 公司，主攻欧洲主权 AI。两者合并，代表非美国 AI 力量的整合。">Cohere 和 Aleph Alpha 合并</span>。Turck 在美国以外走访时观察到：各国对「在当前地缘政治动荡下将智能外包给少数美国平台」越来越抵触。
+      <div class="source-chips">
+        <a class="chip" href="https://x.com/mattturck/status/2047721904438493482" target="_blank">↗ 原推</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer layer-explain">
+    <div class="layer-label lbl-explain"><span class="lbl-dot"></span>小白解读</div>
+    <div class="layer-text">
+      当前全球 AI 领头羊几乎都是美国公司（OpenAI、Anthropic、Google、Meta）。很多国家在想：<br><br>
+      ✦ 如果 AI 是「智能的基础设施」，全托付给美国公司安全吗？<br>
+      ✦ 数据会不会被看？法律上有什么风险？<br><br>
+      Cohere（加拿大）+ Aleph Alpha（德国）合并，代表「非美国 AI」在整合力量。这个趋势随着地缘政治紧张会越来越重要。
+    </div>
+  </div>
+
+  <div class="layer layer-kid">
+    <div class="layer-label lbl-kid"><span class="lbl-dot"></span>10 岁版</div>
+    <div class="layer-text">
+      最聪明的 AI 几乎都是美国做的。有些国家担心：万一以后美国不让我们用了怎么办？所以其他国家的 AI 公司开始合体，希望做出自己的 AI，不用全靠美国。
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 11 SWYX -->
+<div class="container">
+<div id="swyx" class="entry">
+  <div class="entry-head">
+    <div>
+      <div class="entry-num">No. 11</div>
+      <div class="entry-author">Swyx</div>
+      <div class="entry-role">Latent Space 播客主持人 / Cognition</div>
+    </div>
+  </div>
+
+  <div class="layer layer-orig">
+    <div class="layer-label lbl-orig"><span class="lbl-dot"></span>原文摘要</div>
+    <div class="layer-text">
+      「今天的热门技能，就是明天的 <span class="g" data-def="Post-training（后训练）：AI 基础模型训练完后，再用具体任务数据精调，让它更擅长某类工作。今天某技能很值钱 → 被收集为训练数据 → 下一代模型学会了 → 这个技能就贬值了。">post-train 目标</span>。」
+      <div class="source-chips">
+        <a class="chip" href="https://x.com/swyx/status/2047715417867907539" target="_blank">↗ 原推</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer layer-explain">
+    <div class="layer-label lbl-explain"><span class="lbl-dot"></span>小白解读</div>
+    <div class="layer-text">
+      这句话揭示了一个残酷的飞轮：<br><br>
+      ① 某个技能很值钱（比如「写高质量 prompt」）<br>
+      ② AI 公司看到了：这个技能最有价值，要让模型学会它<br>
+      ③ 下一代模型学会了，这个技能的溢价消失<br>
+      ④ 新的「最值钱技能」出现，循环往复<br><br>
+      启示：关注那些更难被模型复制的能力——判断力、业务理解、人际关系、跨领域整合。
+    </div>
+  </div>
+
+  <div class="layer layer-kid">
+    <div class="layer-label lbl-kid"><span class="lbl-dot"></span>10 岁版</div>
+    <div class="layer-text">
+      如果今天最厉害的小朋友会折纸鹤，AI 公司就会让 AI 学折纸鹤。等 AI 学会了，折纸鹤就不特别了。所以要持续学新东西，不能停！
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 12 ADITYA AGARWAL -->
+<div class="container">
+<div id="adityaag" class="entry">
+  <div class="entry-head">
+    <div>
+      <div class="entry-num">No. 12</div>
+      <div class="entry-author">Aditya Agarwal</div>
+      <div class="entry-role">General Partner @ South Park Commons · 前 Dropbox CTO</div>
+    </div>
+  </div>
+
+  <div class="layer layer-orig">
+    <div class="layer-label lbl-orig"><span class="lbl-dot"></span>原文摘要</div>
+    <div class="layer-text">
+      「我们正在接近一个后提示词时代。」—— <span class="g" data-def="Prompt Engineering（提示词工程）：精心设计你问 AI 的话，以获得更好的回答。比如加上「请用简单语言」「先思考再作答」等技巧。随着模型越来越智能，这些技巧的价值可能会降低。">Prompt engineering</span> 可能将逐渐过时。
+      <div class="source-chips">
+        <a class="chip" href="https://x.com/adityaag/status/2047669585667666321" target="_blank">↗ 原推</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer layer-explain">
+    <div class="layer-label lbl-explain"><span class="lbl-dot"></span>小白解读</div>
+    <div class="layer-text">
+      现在还有人专门学「怎么问 AI 才能得到好答案」，这就是 prompt engineering。<br><br>
+      Aditya 说：这个时代快结束了。未来的 AI 应该能猜到你真正想要什么，不用写那么精确的指令。就像早期搜索引擎需要精确关键词，而现在 Google 随便说「北京今天怎么样」就知道你要查天气。AI 正在经历同样进化：从「指令模式」进入「意图模式」。
+    </div>
+  </div>
+
+  <div class="layer layer-kid">
+    <div class="layer-label lbl-kid"><span class="lbl-dot"></span>10 岁版</div>
+    <div class="layer-text">
+      现在要让 AI 帮你做事，你得说得很准确。但以后的 AI 越来越聪明，你只要说个大概，它就能猜到你想要什么，就像妈妈不用说完你就知道她想要什么一样。
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── SECTION: OFFICIAL BLOGS ── -->
+<div class="container">
+  <div class="section-head">
+    <div class="section-line"></div>
+    <div class="section-title">官方博客</div>
+    <div class="section-line"></div>
+  </div>
+</div>
+
+<!-- 13 ANTHROPIC -->
+<div class="container">
+<div id="anthropic-blog" class="entry">
+  <div class="entry-head">
+    <div>
+      <div class="entry-num">No. 13</div>
+      <div class="entry-author">Anthropic Engineering Blog</div>
+      <div class="entry-role">Anthropic（Claude 的制造商）官方工程博客</div>
+    </div>
+    <a class="entry-link" href="https://www.anthropic.com/engineering/managed-agents" target="_blank">阅读原文 ↗</a>
+  </div>
+
+  <div class="layer layer-orig">
+    <div class="layer-label lbl-orig"><span class="lbl-dot"></span>原文摘要</div>
+    <div class="layer-text">
+      <strong>Scaling Managed Agents：大脑和双手分家</strong><br><br>
+      Anthropic 推出 <span class="g" data-def="Managed Agents：Anthropic 提供的托管服务，帮助开发者在云端运行长时间的 AI 任务，不需要自己搭建复杂基础设施。">Managed Agents</span>——可靠运行长周期 Claude 智能体的托管服务。核心架构：将「大脑」（Claude + <span class="g" data-def="Harness（驱动框架）：控制 Claude 如何运行、何时调用工具的程序框架。就像一个导演，指挥 Claude 这个演员按剧本行动。">harness</span>）、「双手」（<span class="g" data-def="Sandbox（沙箱）：隔离的执行环境，AI 在里面运行代码，即使出错也不影响外部系统。就像游乐场，弄脏了也不影响家里。">沙箱</span>）、「会话」（事件日志）拆分为独立接口。<br><br>
+      结果：p50 首字节时延降 60%，p95 降 90%+；AI 代码再也碰不到凭证，安全性大幅提升。
+      <div class="source-chips">
+        <a class="chip" href="https://www.anthropic.com/engineering/managed-agents" target="_blank">↗ anthropic.com/engineering/managed-agents</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer layer-explain">
+    <div class="layer-label lbl-explain"><span class="lbl-dot"></span>小白解读</div>
+    <div class="layer-text">
+      想象一个厨师在厨房工作。<br><br>
+      <strong>以前：</strong>厨师（AI）、厨具（工具）、食材和钥匙都锁在同一个小隔间。出问题整个隔间报废，坏人进来能一次拿走所有东西。<br><br>
+      <strong>现在：</strong>厨师站在主厨房只负责思考和下指令；厨具在专用区域按需开启；钥匙放在独立保险柜里，厨师根本碰不到。<br><br>
+      好处：① 速度快了 60–90%（不用的工具不开启）② 安全性大幅提升（AI 生成的代码拿不到密钥）③ 灵活性更高（某个部分坏了可以独立替换）
+    </div>
+  </div>
+
+  <div class="layer layer-kid">
+    <div class="layer-label lbl-kid"><span class="lbl-dot"></span>10 岁版</div>
+    <div class="layer-text">
+      以前 AI 大脑和它用的工具住在同一个盒子里，盒子坏了就全完了。现在 Anthropic 把 AI 大脑和工具分开放，就像把脑袋和手分开——大脑在这边想，手在那边干活，互相不影响，还更安全！
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ── SECTION: PODCASTS ── -->
+<div class="container">
+  <div class="section-head">
+    <div class="section-line"></div>
+    <div class="section-title">播客精选</div>
+    <div class="section-line"></div>
+  </div>
+</div>
+
+<!-- 14 NO PRIORS -->
+<div class="container">
+<div id="nopriors" class="entry">
+  <div class="entry-head">
+    <div>
+      <div class="entry-num">No. 14</div>
+      <div class="entry-author">No Priors 播客</div>
+      <div class="entry-role">嘉宾：Philipp Herzig，SAP CTO</div>
+    </div>
+    <a class="entry-link" href="https://www.youtube.com/watch?v=5u7AjPardvo" target="_blank">观看 / 收听 ↗</a>
+  </div>
+
+  <div class="layer layer-orig">
+    <div class="layer-label lbl-orig"><span class="lbl-dot"></span>原文摘要</div>
+    <div class="layer-text">
+      <strong>核心观点：AI 是商业模式转型，不只是技术升级。</strong><br><br>
+      <span class="g" data-def="SAP 是德国软件公司，全球最大的企业管理软件供应商，服务全球 40 万家大企业，帮它们管理财务、供应链、人力资源等。">SAP</span> CTO Herzig 将 SAP 定义为「公司的操作系统」。AI 转型三层：① 生成式 UI（软件主动适应你）② AI agent 重塑流程（SaaS → 服务即软件）③ 统一数据层驱动预测。<br><br>
+      反直觉观点：<span class="g" data-def="LLM（大语言模型）是 ChatGPT、Claude、Gemini 这类 AI 的技术底层。擅长处理文字，但并不擅长做精确的数值预测（比如预测销量）。">LLM 不擅长预测结构化数据</span>。SAP 自研了 <span class="g" data-def="RPT1（Relational Pretrained Transformer）：SAP 自研 AI 模型，专门处理表格数据（财务、销售数据等），就像 LLM 处理文字一样处理数字表格，让普通业务员也能做精准预测。">RPT1</span>（关系预训练 Transformer）来补足。<br><br>
+      规模警示：「10 个 API 时 MCP 没问题，我们有 20,000 个 API。」Evals = 企业级 agentic coding 的关键纪律。
+      <div class="source-chips">
+        <a class="chip" href="https://www.youtube.com/watch?v=5u7AjPardvo" target="_blank">↗ YouTube 完整视频</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="layer layer-explain">
+    <div class="layer-label lbl-explain"><span class="lbl-dot"></span>小白解读</div>
+    <div class="layer-text">
+      SAP 就像企业界的「水电气」——几乎所有你知道的大公司内部系统都跑在 SAP 上。他说了四件重要的事：<br><br>
+      <strong>① LLM 不会算账</strong><br>
+      ChatGPT 很会写文章，但让它预测「下季度哪个产品卖多少」？做不好。LLM 是一个字一个字往外蹦的，它在做语言游戏，不是在做数学运算。所以 SAP 自己做了 RPT1，专门处理表格数据的 AI。<br><br>
+      <strong>② 规模是创业者想象不到的</strong><br>
+      你的 AI 演示可能用了 10 个工具，感觉很厉害。SAP 有 20,000 个接口，让 AI 管理这 20,000 个接口，难度是另一个数量级。这是为什么「颠覆 SAP」的创业公司大多倒了。<br><br>
+      <strong>③ Evals 是新时代的测试</strong><br>
+      就像程序员用测试用例验证代码，现在 AI 也需要大量「已知答案的案例」来检验自己的判断。这是让企业敢用 AI 的关键。<br><br>
+      <strong>④ 定价模式在变</strong><br>
+      以前按「用的人数」收钱，未来变成「用了多少 AI 做了多少事」收钱——就像水电费。
+    </div>
+  </div>
+
+  <div class="layer layer-kid">
+    <div class="layer-label lbl-kid"><span class="lbl-dot"></span>10 岁版</div>
+    <div class="layer-text">
+      SAP 是一个帮大公司管理所有事情的超大软件，全世界 40 万家大公司都在用。它的技术总负责人说了三件事：<br><br>
+      🔢 AI 很会讲故事，但不会算复杂的数学——所以他们自己做了一个专门算数的 AI<br>
+      📦 玩具盒有 20,000 个格子，让 AI 整理这么多格子比整理 10 个难很多倍<br>
+      💰 以后付钱方式会变：不是买票进场，而是用多少付多少，就像打车按里程收费！
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-text">AI Builders Digest &nbsp;·&nbsp; 2026.04.25 &nbsp;·&nbsp; 小白友好版</div>
+    <div class="footer-text">内容来源 <a href="https://github.com/zarazhangrui/follow-builders" target="_blank">Follow Builders skill</a></div>
+  </div>
+</footer>
+
+</body>
+</html>
