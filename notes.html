@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Digest · 笔记板块</title>
+<link rel="stylesheet" href="assets/highlight.css">
+<style>
+:root {
+  --paper: #f8f6f1; --ink: #1c1a16; --soft: #6c655a; --line: #d6cfc0;
+  --red: #9b3a2f; --blue: #2f4d7a; --gold: #6a5420; --green: #2a5c3f;
+  --green-tint: #f0f4f1;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: "PingFang SC", "Hiragino Sans GB", system-ui, sans-serif;
+  font-size: 16px; line-height: 1.75;
+}
+.container { max-width: 920px; margin: 0 auto; padding: 40px 32px 80px; }
+header { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 32px; }
+header .label { font-size: 12px; letter-spacing: 0.25em; color: var(--soft); text-transform: uppercase; }
+header h1 { font-size: 28px; font-weight: 600; margin: 10px 0 6px; letter-spacing: 0.05em; }
+header .subtitle { color: var(--soft); font-size: 14px; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 40px;
+}
+
+.sidebar {
+  position: sticky; top: 90px; align-self: start;
+  font-size: 14px;
+}
+.sidebar-section { margin-bottom: 24px; }
+.sidebar h3 {
+  font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase;
+  color: var(--soft); margin: 0 0 10px; font-weight: 600;
+}
+.sidebar .source {
+  display: block; padding: 4px 8px; margin-bottom: 2px;
+  color: var(--ink); text-decoration: none; border-radius: 2px;
+  font-size: 13px; cursor: pointer; border-left: 2px solid transparent;
+}
+.sidebar .source:hover { background: rgba(0,0,0,0.04); }
+.sidebar .source.active {
+  background: var(--green-tint); border-left-color: var(--green); color: var(--green);
+}
+.sidebar .source-count {
+  float: right; color: var(--soft); font-size: 12px;
+}
+.sidebar button {
+  width: 100%; padding: 8px; font-size: 13px;
+  background: none; border: 1px solid var(--green); color: var(--green);
+  border-radius: 3px; cursor: pointer; margin-top: 8px;
+  font-family: inherit;
+}
+.sidebar button:hover { background: var(--green); color: var(--paper); }
+.sidebar .scope-toggle {
+  display: flex; gap: 4px; margin-bottom: 12px;
+  border: 1px solid var(--line); border-radius: 3px; padding: 2px;
+  font-size: 12px;
+}
+.sidebar .scope-toggle button {
+  flex: 1; margin: 0; padding: 5px; border: none; color: var(--soft);
+  background: transparent;
+}
+.sidebar .scope-toggle button.active {
+  background: var(--ink); color: var(--paper);
+}
+
+.notes-list { min-height: 200px; }
+.note-card {
+  background: #fffdf6; border: 1px solid var(--line);
+  border-left: 3px solid var(--gold); padding: 16px 18px;
+  margin-bottom: 14px; border-radius: 3px;
+}
+.note-card.private {
+  border-left-color: var(--red);
+  background: #fff5f5;
+}
+.note-quote {
+  background: #fff8d4; padding: 8px 12px; border-left: 2px solid var(--gold);
+  font-size: 14.5px; color: #463920; margin-bottom: 10px; border-radius: 2px;
+  white-space: pre-wrap;
+}
+.note-comment { font-size: 14.5px; line-height: 1.7; margin: 8px 0; }
+.note-comment::before {
+  content: "💬 "; color: var(--blue); margin-right: 2px;
+}
+.note-meta {
+  font-size: 12px; color: var(--soft);
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+  margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line);
+}
+.note-tag {
+  background: var(--green-tint); color: var(--green);
+  padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500;
+  cursor: pointer; border: none; font-family: inherit;
+}
+.note-tag:hover { background: var(--green); color: var(--paper); }
+.note-source a {
+  color: var(--soft); text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.note-source a:hover { border-bottom-color: var(--soft); }
+.note-private-badge {
+  font-size: 11px; color: var(--red); border: 1px solid var(--red);
+  padding: 1px 6px; border-radius: 8px;
+}
+
+.empty {
+  text-align: center; color: var(--soft);
+  padding: 60px 0; font-style: italic;
+}
+.results-header {
+  font-size: 13px; color: var(--soft); margin-bottom: 16px;
+  display: flex; justify-content: space-between;
+}
+
+footer {
+  margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line);
+  text-align: center; color: var(--soft); font-size: 12px; letter-spacing: 0.15em;
+}
+
+@media (max-width: 720px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; }
+}
+</style>
+</head>
+<body>
+
+<script>
+window.AI_DIGEST_CONFIG = {
+  supabaseUrl: "https://hrziiwdtzinezynulwaj.supabase.co",
+  supabaseKey: "sb_publishable_vE72n4CwRMRaAHMV_MZgXA_EtdVDzTu"
+};
+</script>
+<nav class="ai-digest-nav">
+  <div class="ai-digest-nav-links">
+    <a href="index.html">今日</a>
+    <a href="archive.html">历史</a>
+    <a href="notes.html" class="active">笔记</a>
+  </div>
+  <div class="ai-digest-nav-actions">
+    <button onclick="window.exportHighlightsAsMarkdown && window.exportHighlightsAsMarkdown()">导出笔记 .md</button>
+  </div>
+</nav>
+
+
+<div class="container">
+  <header>
+    <div class="label">NOTES · 笔记板块</div>
+    <h1>划线 & 笔记</h1>
+    <div class="subtitle">公开划线来自所有读者，私密划线仅在当前浏览器可见</div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h3>来源</h3>
+        <div class="scope-toggle">
+          <button class="active" data-scope="all">全部</button>
+          <button data-scope="public">公开</button>
+          <button data-scope="private">私密</button>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <h3>话题标签</h3>
+        <div id="tag-list"></div>
+      </div>
+      <div class="sidebar-section">
+        <h3>操作</h3>
+        <button onclick="exportLocalMarkdown()">导出 Markdown</button>
+      </div>
+    </aside>
+
+    <main>
+      <div class="results-header">
+        <div id="results-count">加载中…</div>
+        <a href="index.html" style="font-size:13px; color: var(--green); text-decoration: none;">← 回到今日 digest</a>
+      </div>
+      <div id="notes-list" class="notes-list"></div>
+    </main>
+  </div>
+
+  <footer>AI Builders Digest · 划线笔记</footer>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+const CFG = window.AI_DIGEST_CONFIG || {};
+const supa = (CFG.supabaseUrl && CFG.supabaseKey)
+  ? createClient(CFG.supabaseUrl, CFG.supabaseKey)
+  : null;
+
+const LS_KEY = 'ai-digest-highlights-v1';
+const LS_TOKEN_KEY = 'ai-digest-owner-token';
+const OWNER_TOKEN = localStorage.getItem(LS_TOKEN_KEY) || '';
+
+function loadLocal() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
+  catch { return []; }
+}
+
+const state = {
+  scope: 'all',     // all | public | private
+  activeTag: null,
+  cloudPublic: [],
+  localAll: [],
+};
+
+function normalizeCloud(row) {
+  return {
+    id: row.id,
+    digestDate: row.digest_date,
+    digestUrl: row.digest_url,
+    digestTitle: row.digest_title,
+    textContent: row.text_content,
+    comment: row.comment || '',
+    tags: row.tags || [],
+    isPublic: true,
+    ownerToken: row.owner_token,
+    createdAt: row.created_at,
+    fromCloud: true
+  };
+}
+
+async function loadCloud() {
+  if (!supa) return [];
+  const { data, error } = await supa
+    .from('highlights')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(500);
+  if (error) {
+    console.warn('Cloud load failed:', error);
+    return [];
+  }
+  return (data || []).map(normalizeCloud);
+}
+
+function mergeData() {
+  // Cloud has all public; local has private + public mirror for current device.
+  // Dedup by id (cloud wins if both present, but local edits matter for ownership detection).
+  const map = new Map();
+  for (const h of state.cloudPublic) map.set(h.id, h);
+  for (const h of state.localAll) {
+    if (!map.has(h.id)) map.set(h.id, h);
+    else {
+      // Cloud version exists; preserve ownerToken from local (so edit button shows for owner)
+      const cloud = map.get(h.id);
+      map.set(h.id, { ...cloud, ownerToken: h.ownerToken });
+    }
+  }
+  return Array.from(map.values());
+}
+
+function applyFilters(all) {
+  let arr = all.slice();
+  if (state.scope === 'public') arr = arr.filter(h => h.isPublic);
+  if (state.scope === 'private') arr = arr.filter(h => !h.isPublic);
+  if (state.activeTag) arr = arr.filter(h => (h.tags || []).includes(state.activeTag));
+  arr.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  return arr;
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+  }[c]));
+}
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  try { return new Date(iso).toLocaleString('zh-CN', { dateStyle: 'short', timeStyle: 'short' }); }
+  catch { return iso; }
+}
+
+function render() {
+  const all = mergeData();
+  const filtered = applyFilters(all);
+  const container = document.getElementById('notes-list');
+
+  document.getElementById('results-count').textContent =
+    `${filtered.length} 条${state.activeTag ? '（#' + state.activeTag + '）' : ''}`;
+
+  if (!filtered.length) {
+    container.innerHTML = '<div class="empty">还没有划线。回到 digest 选中文字试试。</div>';
+  } else {
+    container.innerHTML = filtered.map(h => {
+      const tagsHtml = (h.tags || []).map(t =>
+        `<button class="note-tag" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</button>`
+      ).join('');
+      const sourceHtml = h.digestUrl
+        ? `<span class="note-source">来源：<a href="${escapeHtml(h.digestUrl)}" target="_blank">${escapeHtml(h.digestTitle || h.digestDate || h.digestUrl)}</a></span>`
+        : '';
+      return `
+      <article class="note-card ${h.isPublic ? '' : 'private'}">
+        <div class="note-quote">${escapeHtml(h.textContent)}</div>
+        ${h.comment ? `<div class="note-comment">${escapeHtml(h.comment)}</div>` : ''}
+        <div class="note-meta">
+          ${tagsHtml}
+          ${sourceHtml}
+          <span style="margin-left:auto;">${fmtDate(h.createdAt)}</span>
+          ${!h.isPublic ? '<span class="note-private-badge">私密</span>' : ''}
+        </div>
+      </article>`;
+    }).join('');
+
+    container.querySelectorAll('.note-tag').forEach(btn => {
+      btn.onclick = () => {
+        state.activeTag = btn.dataset.tag;
+        renderTagList();
+        render();
+      };
+    });
+  }
+}
+
+function renderTagList() {
+  const all = mergeData();
+  const counts = {};
+  for (const h of all) for (const t of (h.tags || [])) counts[t] = (counts[t] || 0) + 1;
+  const tags = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  const html = ['<a class="source ' + (!state.activeTag ? 'active' : '') + '" data-tag="">全部话题<span class="source-count">' + all.length + '</span></a>']
+    .concat(tags.map(t =>
+      `<a class="source ${state.activeTag === t ? 'active' : ''}" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}<span class="source-count">${counts[t]}</span></a>`
+    )).join('');
+  const el = document.getElementById('tag-list');
+  el.innerHTML = html;
+  el.querySelectorAll('.source').forEach(a => {
+    a.onclick = e => {
+      e.preventDefault();
+      state.activeTag = a.dataset.tag || null;
+      renderTagList();
+      render();
+    };
+  });
+}
+
+document.querySelectorAll('.scope-toggle button').forEach(btn => {
+  btn.onclick = () => {
+    state.scope = btn.dataset.scope;
+    document.querySelectorAll('.scope-toggle button').forEach(b => b.classList.toggle('active', b === btn));
+    render();
+  };
+});
+
+window.exportLocalMarkdown = function() {
+  const all = loadLocal();
+  if (!all.length) { alert('本地没有划线'); return; }
+  const byTag = {};
+  for (const h of all) {
+    const tags = (h.tags && h.tags.length) ? h.tags : ['untagged'];
+    for (const t of tags) (byTag[t] = byTag[t] || []).push(h);
+  }
+  let md = `# AI Digest Highlights\n\n导出时间：${new Date().toLocaleString('zh-CN')}\n共 ${all.length} 条划线\n\n---\n\n`;
+  for (const tag of Object.keys(byTag).sort()) {
+    md += `## #${tag}\n\n`;
+    for (const h of byTag[tag]) {
+      md += `> ${h.textContent}\n>\n`;
+      if (h.comment) md += `> **评论：** ${h.comment}\n>\n`;
+      md += `> *${h.digestTitle || h.digestDate || ''} · ${h.isPublic ? '公开' : '私密'}*\n>\n`;
+      md += `> [来源](${h.digestUrl}) · ${new Date(h.createdAt).toLocaleString('zh-CN')}\n\n`;
+    }
+  }
+  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ai-digest-highlights-${new Date().toISOString().slice(0,10)}.md`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+(async function init() {
+  state.localAll = loadLocal();
+  state.cloudPublic = await loadCloud();
+  renderTagList();
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Digest · 历史归档</title>
+<link rel="stylesheet" href="assets/highlight.css">
+<style>
+:root {
+  --paper: #f8f6f1; --ink: #1c1a16; --soft: #6c655a; --line: #d6cfc0;
+  --red: #9b3a2f; --blue: #2f4d7a; --gold: #6a5420; --green: #2a5c3f;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: "PingFang SC", "Hiragino Sans GB", system-ui, sans-serif;
+  font-size: 16px; line-height: 1.75;
+}
+.container { max-width: 760px; margin: 0 auto; padding: 40px 32px 80px; }
+header { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 32px; }
+header .label { font-size: 12px; letter-spacing: 0.25em; color: var(--soft); text-transform: uppercase; }
+header h1 { font-size: 28px; font-weight: 600; margin: 10px 0 6px; letter-spacing: 0.05em; }
+header .subtitle { color: var(--soft); font-size: 14px; }
+.month-group { margin-bottom: 40px; }
+.month-label {
+  font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--green); border-bottom: 1px solid var(--line);
+  padding-bottom: 6px; margin-bottom: 14px; font-weight: 600;
+}
+.entry-list { list-style: none; padding: 0; margin: 0; }
+.entry-list li {
+  padding: 10px 0; border-bottom: 1px dashed var(--line);
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+}
+.entry-list li:last-child { border-bottom: none; }
+.entry-date {
+  font-variant-numeric: tabular-nums;
+  font-size: 14px; color: var(--soft); white-space: nowrap;
+  letter-spacing: 0.05em;
+}
+.entry-link {
+  flex: 1; color: var(--ink); text-decoration: none;
+  border-bottom: 1px solid transparent; font-size: 15px;
+}
+.entry-link:hover { color: var(--green); border-bottom-color: var(--green); }
+.weekday { font-size: 12px; color: var(--soft); margin-left: 8px; }
+.empty {
+  text-align: center; color: var(--soft); padding: 60px 0; font-style: italic;
+}
+footer {
+  margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line);
+  text-align: center; color: var(--soft); font-size: 12px; letter-spacing: 0.15em;
+}
+</style>
+</head>
+<body>
+
+<nav class="ai-digest-nav">
+  <div class="ai-digest-nav-links">
+    <a href="index.html">今日</a>
+    <a href="archive.html" class="active">历史</a>
+    <a href="notes.html">笔记</a>
+  </div>
+  <div class="ai-digest-nav-actions">
+    <button onclick="window.exportHighlightsAsMarkdown && window.exportHighlightsAsMarkdown()">导出笔记 .md</button>
+  </div>
+</nav>
+
+
+<div class="container">
+  <header>
+    <div class="label">ARCHIVE · 历史归档</div>
+    <h1>AI Builders Digest</h1>
+    <div class="subtitle">所有过往日报，按月份倒序排列</div>
+  </header>
+
+  <div id="archive-content">
+    <div class="empty">正在加载…</div>
+  </div>
+
+  <footer>AI Builders Digest · 每日更新</footer>
+</div>
+
+<script>
+(async function() {
+  const container = document.getElementById('archive-content');
+  try {
+    const resp = await fetch('archive.json?t=' + Date.now());
+    const list = await resp.json();
+    if (!list || !list.length) {
+      container.innerHTML = '<div class="empty">还没有归档</div>';
+      return;
+    }
+    list.sort((a, b) => b.date.localeCompare(a.date));
+    const byMonth = {};
+    for (const e of list) {
+      const ym = e.date.slice(0, 7);
+      (byMonth[ym] = byMonth[ym] || []).push(e);
+    }
+    const months = Object.keys(byMonth).sort().reverse();
+    const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    const monthName = ym => {
+      const [y, m] = ym.split('-');
+      return `${y} 年 ${parseInt(m, 10)} 月`;
+    };
+    container.innerHTML = months.map(ym => `
+      <div class="month-group">
+        <div class="month-label">${monthName(ym)} · ${byMonth[ym].length} 期</div>
+        <ul class="entry-list">
+          ${byMonth[ym].map(e => {
+            const d = new Date(e.date + 'T00:00:00');
+            const wd = weekdays[d.getDay()];
+            return `<li>
+              <span class="entry-date">${e.date}<span class="weekday">${wd}</span></span>
+              <a class="entry-link" href="${e.url.split('/').pop()}">${e.title || ('AI Builders Digest · ' + e.date)}</a>
+            </li>`;
+          }).join('')}
+        </ul>
+      </div>
+    `).join('');
+  } catch (err) {
+    container.innerHTML = '<div class="empty">加载失败：' + err.message + '</div>';
+  }
+})();
+</script>
+</body>
+</html>
