@@ -218,6 +218,10 @@ window.AI_DIGEST_CONFIG = {
         <div id="tag-list"></div>
       </div>
       <div class="sidebar-section">
+        <h3>作者</h3>
+        <div id="author-list"></div>
+      </div>
+      <div class="sidebar-section">
         <h3>我的显示名</h3>
         <input type="text" id="display-name-input" placeholder="比如 Wendy / 留空 = 匿名"
                style="width:100%;padding:6px 8px;border:1px solid var(--line);
@@ -230,8 +234,9 @@ window.AI_DIGEST_CONFIG = {
         <div id="display-name-hint" style="font-size:11px;color:var(--soft);margin-top:6px;line-height:1.5;"></div>
       </div>
       <div class="sidebar-section">
-        <h3>操作</h3>
-        <button onclick="exportLocalMarkdown()">导出 Markdown</button>
+        <h3>导出</h3>
+        <button onclick="exportCurrentFiltered()" id="export-filtered-btn">导出当前筛选</button>
+        <button onclick="exportLocalMarkdown()" style="margin-top:6px;">导出我的全部</button>
       </div>
     </aside>
 
@@ -241,9 +246,9 @@ window.AI_DIGEST_CONFIG = {
         <a href="index.html" style="font-size:13px; color: var(--green); text-decoration: none;">← 回到今日 digest</a>
       </div>
       <div id="bulk-bar" class="bulk-bar" style="display:none;">
-        <span id="bulk-status">我的笔记：<strong id="bulk-mine-count">0</strong> 条</span>
+        <span id="bulk-status">我的笔记：<strong id="bulk-mine-count">0</strong> 条 · 当前筛选下：<strong id="bulk-filtered-count">0</strong> 条</span>
         <div class="bulk-spacer"></div>
-        <button onclick="exportLocalMarkdown()">导出我的全部</button>
+        <button onclick="exportCurrentFiltered()">导出当前筛选</button>
         <button class="danger" onclick="bulkDeleteFiltered()">删除当前筛选下我的</button>
       </div>
       <div id="notes-list" class="notes-list"></div>
@@ -274,10 +279,12 @@ function loadLocal() {
 const state = {
   scope: 'all',     // all | public | private
   activeTag: null,
+  activeAuthor: null,  // null = all; '' = 匿名; 'Wendy' = specific name
   cloudPublic: [],
   localAll: [],
   editingId: null,
 };
+const AUTHOR_ANON = '__anon__';   // sentinel for "anonymous" picks
 
 function normalizeCloud(row) {
   return {
@@ -331,8 +338,44 @@ function applyFilters(all) {
   if (state.scope === 'public') arr = arr.filter(h => h.isPublic);
   if (state.scope === 'private') arr = arr.filter(h => !h.isPublic);
   if (state.activeTag) arr = arr.filter(h => (h.tags || []).includes(state.activeTag));
+  if (state.activeAuthor !== null) {
+    if (state.activeAuthor === AUTHOR_ANON) {
+      arr = arr.filter(h => h.isPublic && !h.authorName);
+    } else {
+      arr = arr.filter(h => h.isPublic && h.authorName === state.activeAuthor);
+    }
+  }
   arr.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
   return arr;
+}
+
+function renderAuthorList() {
+  const all = mergeData().filter(h => h.isPublic);
+  const counts = {};
+  for (const h of all) {
+    const key = h.authorName || AUTHOR_ANON;
+    counts[key] = (counts[key] || 0) + 1;
+  }
+  const names = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  const total = all.length;
+  const items = [
+    `<a class="source ${state.activeAuthor === null ? 'active' : ''}" data-author="__all__">全部作者<span class="source-count">${total}</span></a>`
+  ].concat(names.map(n => {
+    const label = (n === AUTHOR_ANON) ? '匿名' : n;
+    return `<a class="source ${state.activeAuthor === n ? 'active' : ''}" data-author="${escapeHtml(n)}">${escapeHtml(label)}<span class="source-count">${counts[n]}</span></a>`;
+  })).join('');
+  const el = document.getElementById('author-list');
+  if (!el) return;
+  el.innerHTML = items;
+  el.querySelectorAll('.source').forEach(a => {
+    a.onclick = e => {
+      e.preventDefault();
+      const v = a.dataset.author;
+      state.activeAuthor = (v === '__all__') ? null : v;
+      renderAuthorList();
+      render();
+    };
+  });
 }
 
 function escapeHtml(s) {
@@ -361,9 +404,14 @@ function render() {
   if (myCount > 0) {
     bulkBar.style.display = '';
     document.getElementById('bulk-mine-count').textContent = String(myCount);
+    document.getElementById('bulk-filtered-count').textContent = String(filtered.length);
   } else {
     bulkBar.style.display = 'none';
   }
+
+  // Export button shows count
+  const btn = document.getElementById('export-filtered-btn');
+  if (btn) btn.textContent = `导出当前筛选（${filtered.length}）`;
 
   if (!filtered.length) {
     container.innerHTML = '<div class="empty">还没有划线。回到 digest 选中文字试试。</div>';
@@ -498,6 +546,7 @@ async function saveEdit(id) {
   }
   state.editingId = null;
   renderTagList();
+  renderAuthorList();
   render();
 }
 
@@ -606,33 +655,52 @@ window.saveDisplayName = async function(applyToAll) {
   render();
 };
 
-window.exportLocalMarkdown = function() {
-  const all = loadLocal();
-  if (!all.length) { alert('本地没有划线'); return; }
+function downloadMarkdown(items, filenameSuffix) {
+  if (!items.length) { alert('当前筛选下没有内容'); return; }
   const byTag = {};
-  for (const h of all) {
+  for (const h of items) {
     const tags = (h.tags && h.tags.length) ? h.tags : ['untagged'];
     for (const t of tags) (byTag[t] = byTag[t] || []).push(h);
   }
-  let md = `# AI Digest Highlights\n\n导出时间：${new Date().toLocaleString('zh-CN')}\n共 ${all.length} 条划线\n\n---\n\n`;
+  let md = `# AI Digest Highlights\n\n导出时间：${new Date().toLocaleString('zh-CN')}\n共 ${items.length} 条划线\n\n---\n\n`;
   for (const tag of Object.keys(byTag).sort()) {
     md += `## #${tag}\n\n`;
     for (const h of byTag[tag]) {
+      const author = h.isPublic ? (h.authorName || '匿名') : '私密';
       md += `> ${h.textContent}\n>\n`;
       if (h.comment) md += `> **评论：** ${h.comment}\n>\n`;
-      md += `> *${h.digestTitle || h.digestDate || ''} · ${h.isPublic ? '公开' : '私密'}*\n>\n`;
-      md += `> [来源](${h.digestUrl}) · ${new Date(h.createdAt).toLocaleString('zh-CN')}\n\n`;
+      md += `> *${h.digestTitle || h.digestDate || ''} · ${h.isPublic ? '公开' : '私密'} · ${author}*\n>\n`;
+      md += `> [来源](${h.digestUrl || ''}) · ${new Date(h.createdAt).toLocaleString('zh-CN')}\n\n`;
     }
   }
   const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `ai-digest-highlights-${new Date().toISOString().slice(0,10)}.md`;
+  a.download = `ai-digest-highlights-${filenameSuffix}-${new Date().toISOString().slice(0,10)}.md`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+// Export honors the current filter (scope + tag + author)
+window.exportCurrentFiltered = function() {
+  const filtered = applyFilters(mergeData());
+  const parts = [];
+  if (state.scope !== 'all') parts.push(state.scope === 'public' ? '公开' : '私密');
+  if (state.activeAuthor !== null) {
+    parts.push(state.activeAuthor === AUTHOR_ANON ? '匿名' : state.activeAuthor);
+  }
+  if (state.activeTag) parts.push(state.activeTag);
+  const suffix = parts.length ? parts.join('-') : 'all';
+  downloadMarkdown(filtered, suffix);
+};
+
+// Export all of mine (across filters) — convenience shortcut
+window.exportLocalMarkdown = function() {
+  const mine = mergeData().filter(h => h.ownerToken === OWNER_TOKEN);
+  downloadMarkdown(mine, 'mine');
 };
 
 (async function init() {
@@ -640,6 +708,7 @@ window.exportLocalMarkdown = function() {
   state.cloudPublic = await loadCloud();
   refreshNameUI();
   renderTagList();
+  renderAuthorList();
   render();
 })();
 </script>
