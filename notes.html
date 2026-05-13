@@ -109,6 +109,52 @@ header .subtitle { color: var(--soft); font-size: 14px; }
   font-size: 11px; color: var(--red); border: 1px solid var(--red);
   padding: 1px 6px; border-radius: 8px;
 }
+.note-actions {
+  display: flex; gap: 6px; margin-left: 8px;
+}
+.note-actions button {
+  background: none; border: 1px solid var(--line); color: var(--soft);
+  padding: 2px 10px; font-size: 11px; border-radius: 3px;
+  cursor: pointer; font-family: inherit;
+}
+.note-actions button:hover { border-color: var(--ink); color: var(--ink); }
+.note-actions button.delete:hover { border-color: var(--red); color: var(--red); }
+
+/* Edit form (replaces card body when editing) */
+.note-edit textarea, .note-edit input[type="text"] {
+  width: 100%; box-sizing: border-box; font-family: inherit; font-size: 13px;
+  padding: 6px 8px; border: 1px solid var(--line); border-radius: 2px;
+  background: #fff; margin-bottom: 8px; resize: vertical; outline: none;
+}
+.note-edit textarea:focus, .note-edit input:focus { border-color: var(--green); }
+.note-edit-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+}
+.note-edit-row label { font-size: 12px; color: var(--soft); cursor: pointer; }
+.note-edit-row button {
+  padding: 5px 14px; font-size: 12px; cursor: pointer;
+  border-radius: 3px; border: 1px solid var(--line);
+  background: #fff; font-family: inherit;
+}
+.note-edit-row button.primary {
+  background: var(--green); color: var(--paper); border-color: var(--green);
+}
+.note-edit-row button.primary:hover { background: #1d4530; }
+
+.bulk-bar {
+  background: var(--green-tint); border: 1px solid #d6e0d8;
+  border-radius: 3px; padding: 10px 14px; margin-bottom: 16px;
+  display: flex; gap: 10px; align-items: center; font-size: 13px;
+}
+.bulk-bar button {
+  background: none; border: 1px solid var(--green); color: var(--green);
+  padding: 4px 12px; font-size: 12px; border-radius: 3px;
+  cursor: pointer; font-family: inherit;
+}
+.bulk-bar button:hover { background: var(--green); color: var(--paper); }
+.bulk-bar button.danger { border-color: var(--red); color: var(--red); }
+.bulk-bar button.danger:hover { background: var(--red); color: var(--paper); }
+.bulk-bar .bulk-spacer { flex: 1; }
 
 .empty {
   text-align: center; color: var(--soft);
@@ -182,6 +228,12 @@ window.AI_DIGEST_CONFIG = {
         <div id="results-count">加载中…</div>
         <a href="index.html" style="font-size:13px; color: var(--green); text-decoration: none;">← 回到今日 digest</a>
       </div>
+      <div id="bulk-bar" class="bulk-bar" style="display:none;">
+        <span id="bulk-status">我的笔记：<strong id="bulk-mine-count">0</strong> 条</span>
+        <div class="bulk-spacer"></div>
+        <button onclick="exportLocalMarkdown()">导出我的全部</button>
+        <button class="danger" onclick="bulkDeleteFiltered()">删除当前筛选下我的</button>
+      </div>
       <div id="notes-list" class="notes-list"></div>
     </main>
   </div>
@@ -211,6 +263,7 @@ const state = {
   activeTag: null,
   cloudPublic: [],
   localAll: [],
+  editingId: null,
 };
 
 function normalizeCloud(row) {
@@ -288,38 +341,186 @@ function render() {
   document.getElementById('results-count').textContent =
     `${filtered.length} 条${state.activeTag ? '（#' + state.activeTag + '）' : ''}`;
 
+  // bulk bar: shown if I have any owned notes
+  const myCount = all.filter(h => h.ownerToken === OWNER_TOKEN).length;
+  const bulkBar = document.getElementById('bulk-bar');
+  if (myCount > 0) {
+    bulkBar.style.display = '';
+    document.getElementById('bulk-mine-count').textContent = String(myCount);
+  } else {
+    bulkBar.style.display = 'none';
+  }
+
   if (!filtered.length) {
     container.innerHTML = '<div class="empty">还没有划线。回到 digest 选中文字试试。</div>';
-  } else {
-    container.innerHTML = filtered.map(h => {
-      const tagsHtml = (h.tags || []).map(t =>
-        `<button class="note-tag" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</button>`
-      ).join('');
-      const sourceHtml = h.digestUrl
-        ? `<span class="note-source">来源：<a href="${escapeHtml(h.digestUrl)}" target="_blank">${escapeHtml(h.digestTitle || h.digestDate || h.digestUrl)}</a></span>`
-        : '';
-      return `
+    return;
+  }
+
+  container.innerHTML = filtered.map(h => renderCard(h)).join('');
+
+  container.querySelectorAll('.note-tag').forEach(btn => {
+    btn.onclick = () => {
+      state.activeTag = btn.dataset.tag;
+      renderTagList();
+      render();
+    };
+  });
+  container.querySelectorAll('[data-action="edit"]').forEach(btn => {
+    btn.onclick = () => openEdit(btn.dataset.id);
+  });
+  container.querySelectorAll('[data-action="delete"]').forEach(btn => {
+    btn.onclick = () => doDelete(btn.dataset.id);
+  });
+  container.querySelectorAll('[data-action="cancel-edit"]').forEach(btn => {
+    btn.onclick = () => render();
+  });
+  container.querySelectorAll('[data-action="save-edit"]').forEach(btn => {
+    btn.onclick = () => saveEdit(btn.dataset.id);
+  });
+}
+
+function renderCard(h) {
+  const isMine = h.ownerToken === OWNER_TOKEN;
+  const editing = state.editingId === h.id;
+  const tagsHtml = (h.tags || []).map(t =>
+    `<button class="note-tag" data-tag="${escapeHtml(t)}">#${escapeHtml(t)}</button>`
+  ).join('');
+  const sourceHtml = h.digestUrl
+    ? `<span class="note-source">来源：<a href="${escapeHtml(h.digestUrl)}" target="_blank">${escapeHtml(h.digestTitle || h.digestDate || h.digestUrl)}</a></span>`
+    : '';
+
+  if (editing) {
+    return `
       <article class="note-card ${h.isPublic ? '' : 'private'}">
         <div class="note-quote">${escapeHtml(h.textContent)}</div>
-        ${h.comment ? `<div class="note-comment">${escapeHtml(h.comment)}</div>` : ''}
-        <div class="note-meta">
-          ${tagsHtml}
-          ${sourceHtml}
-          <span style="margin-left:auto;">${fmtDate(h.createdAt)}</span>
-          ${!h.isPublic ? '<span class="note-private-badge">私密</span>' : ''}
+        <div class="note-edit">
+          <textarea id="edit-comment-${h.id}" placeholder="评论（可选）" rows="2">${escapeHtml(h.comment || '')}</textarea>
+          <input type="text" id="edit-tags-${h.id}" placeholder="#标签 空格分隔" value="${escapeHtml((h.tags || []).map(t=>'#'+t).join(' '))}" />
+          <div class="note-edit-row">
+            <label><input type="checkbox" id="edit-private-${h.id}" ${h.isPublic ? '' : 'checked'} /> 仅自己可见</label>
+            <div>
+              <button data-action="cancel-edit">取消</button>
+              <button class="primary" data-action="save-edit" data-id="${h.id}">保存</button>
+            </div>
+          </div>
         </div>
       </article>`;
-    }).join('');
-
-    container.querySelectorAll('.note-tag').forEach(btn => {
-      btn.onclick = () => {
-        state.activeTag = btn.dataset.tag;
-        renderTagList();
-        render();
-      };
-    });
   }
+
+  return `
+    <article class="note-card ${h.isPublic ? '' : 'private'}">
+      <div class="note-quote">${escapeHtml(h.textContent)}</div>
+      ${h.comment ? `<div class="note-comment">${escapeHtml(h.comment)}</div>` : ''}
+      <div class="note-meta">
+        ${tagsHtml}
+        ${sourceHtml}
+        <span style="margin-left:auto;">${fmtDate(h.createdAt)}</span>
+        ${!h.isPublic ? '<span class="note-private-badge">私密</span>' : ''}
+        ${isMine ? `<span class="note-actions">
+          <button data-action="edit" data-id="${h.id}">编辑</button>
+          <button class="delete" data-action="delete" data-id="${h.id}">删除</button>
+        </span>` : ''}
+      </div>
+    </article>`;
 }
+
+function findById(id) {
+  return mergeData().find(h => h.id === id);
+}
+
+function parseTagsInput(s) {
+  return (s || '').split(/[\s,，]+/).map(t => t.replace(/^#/, '').trim()).filter(Boolean);
+}
+
+function openEdit(id) {
+  const h = findById(id);
+  if (!h) return;
+  if (h.ownerToken !== OWNER_TOKEN) { alert('不是你创建的，不能编辑'); return; }
+  state.editingId = id;
+  render();
+}
+
+async function saveEdit(id) {
+  const h = findById(id);
+  if (!h) return;
+  const comment = document.getElementById('edit-comment-' + id).value.trim();
+  const tags = parseTagsInput(document.getElementById('edit-tags-' + id).value);
+  const isPrivate = document.getElementById('edit-private-' + id).checked;
+  const isPublic = !isPrivate;
+  const wasPublic = h.isPublic;
+
+  // Update local
+  const arr = loadLocal();
+  const idx = arr.findIndex(x => x.id === id);
+  const updated = { ...h, comment, tags, isPublic };
+  if (idx >= 0) arr[idx] = updated; else arr.unshift(updated);
+  localStorage.setItem(LS_KEY, JSON.stringify(arr));
+  state.localAll = arr;
+
+  // Sync cloud
+  if (supa) {
+    if (wasPublic && isPublic) {
+      const { error } = await supa.rpc('update_highlight', {
+        p_id: id, p_token: OWNER_TOKEN, p_comment: comment, p_tags: tags
+      });
+      if (error) alert('云端更新失败：' + error.message);
+    } else if (wasPublic && !isPublic) {
+      await supa.rpc('delete_highlight', { p_id: id, p_token: OWNER_TOKEN });
+      state.cloudPublic = state.cloudPublic.filter(x => x.id !== id);
+    } else if (!wasPublic && isPublic) {
+      const { error } = await supa.from('highlights').insert({
+        id, digest_date: h.digestDate, digest_url: h.digestUrl,
+        digest_title: h.digestTitle, text_content: h.textContent,
+        comment, tags, owner_token: OWNER_TOKEN
+      });
+      if (error) alert('云端上传失败：' + error.message);
+      else state.cloudPublic.unshift({ ...updated, fromCloud: true });
+    }
+  }
+  state.editingId = null;
+  renderTagList();
+  render();
+}
+
+async function doDelete(id) {
+  const h = findById(id);
+  if (!h) return;
+  if (h.ownerToken !== OWNER_TOKEN) { alert('不是你创建的，不能删除'); return; }
+  if (!confirm('确定删除这条划线？')) return;
+
+  state.localAll = loadLocal().filter(x => x.id !== id);
+  localStorage.setItem(LS_KEY, JSON.stringify(state.localAll));
+
+  if (h.isPublic && supa) {
+    const { error } = await supa.rpc('delete_highlight', { p_id: id, p_token: OWNER_TOKEN });
+    if (error) { alert('云端删除失败：' + error.message); return; }
+    state.cloudPublic = state.cloudPublic.filter(x => x.id !== id);
+  }
+  renderTagList();
+  render();
+}
+
+window.bulkDeleteFiltered = async function() {
+  const all = mergeData();
+  const filtered = applyFilters(all).filter(h => h.ownerToken === OWNER_TOKEN);
+  if (!filtered.length) { alert('当前筛选下没有你的笔记'); return; }
+  if (!confirm(`将删除 ${filtered.length} 条你的笔记。继续？`)) return;
+
+  const ids = new Set(filtered.map(h => h.id));
+  state.localAll = loadLocal().filter(x => !ids.has(x.id));
+  localStorage.setItem(LS_KEY, JSON.stringify(state.localAll));
+
+  if (supa) {
+    for (const h of filtered) {
+      if (h.isPublic) {
+        await supa.rpc('delete_highlight', { p_id: h.id, p_token: OWNER_TOKEN });
+      }
+    }
+    state.cloudPublic = state.cloudPublic.filter(x => !ids.has(x.id));
+  }
+  renderTagList();
+  render();
+};
 
 function renderTagList() {
   const all = mergeData();
