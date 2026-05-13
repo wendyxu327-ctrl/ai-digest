@@ -11,6 +11,11 @@ const supa = (CFG.supabaseUrl && CFG.supabaseKey)
 
 const LS_KEY = 'ai-digest-highlights-v1';
 const LS_TOKEN_KEY = 'ai-digest-owner-token';
+const LS_NAME_KEY = 'ai-digest-display-name';
+
+function getDisplayName() {
+  return (localStorage.getItem(LS_NAME_KEY) || '').trim();
+}
 
 const OWNER_TOKEN = (() => {
   let t = localStorage.getItem(LS_TOKEN_KEY);
@@ -279,6 +284,9 @@ async function createHighlight(range, text, { comment, tags, isPublic }) {
   wrapRange(range, entry);
 
   if (isPublic && supa) {
+    const name = getDisplayName();
+    entry.authorName = name || null;
+    upsertLocal(entry);
     const { error } = await supa.from('highlights').insert({
       id,
       digest_date: entry.digestDate,
@@ -287,12 +295,13 @@ async function createHighlight(range, text, { comment, tags, isPublic }) {
       text_content: entry.textContent,
       comment: entry.comment || '',
       tags: entry.tags || [],
-      owner_token: OWNER_TOKEN
+      owner_token: OWNER_TOKEN,
+      author_name: name || null
     });
     if (error) toast('已保存本地，云端失败：' + error.message);
-    else toast('已保存（公开）');
+    else toast('已保存（公开）' + (name ? ' · ' + name : ' · 匿名'));
   } else {
-    toast(isPublic ? '已保存（公开）' : '已保存（私密）');
+    toast(isPublic ? '已保存（公开 · 匿名）' : '已保存（私密）');
   }
 }
 

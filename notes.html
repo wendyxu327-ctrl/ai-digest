@@ -218,6 +218,18 @@ window.AI_DIGEST_CONFIG = {
         <div id="tag-list"></div>
       </div>
       <div class="sidebar-section">
+        <h3>我的显示名</h3>
+        <input type="text" id="display-name-input" placeholder="比如 Wendy / 留空 = 匿名"
+               style="width:100%;padding:6px 8px;border:1px solid var(--line);
+                      border-radius:2px;background:#fff;font-size:13px;
+                      box-sizing:border-box;font-family:inherit;margin-bottom:6px;outline:none;" />
+        <div style="display:flex;gap:4px;">
+          <button onclick="saveDisplayName(false)" style="flex:1;">保存（只影响新笔记）</button>
+        </div>
+        <button onclick="saveDisplayName(true)" style="margin-top:6px;">应用到我所有公开笔记</button>
+        <div id="display-name-hint" style="font-size:11px;color:var(--soft);margin-top:6px;line-height:1.5;"></div>
+      </div>
+      <div class="sidebar-section">
         <h3>操作</h3>
         <button onclick="exportLocalMarkdown()">导出 Markdown</button>
       </div>
@@ -251,6 +263,7 @@ const supa = (CFG.supabaseUrl && CFG.supabaseKey)
 
 const LS_KEY = 'ai-digest-highlights-v1';
 const LS_TOKEN_KEY = 'ai-digest-owner-token';
+const LS_NAME_KEY = 'ai-digest-display-name';
 const OWNER_TOKEN = localStorage.getItem(LS_TOKEN_KEY) || '';
 
 function loadLocal() {
@@ -277,6 +290,7 @@ function normalizeCloud(row) {
     tags: row.tags || [],
     isPublic: true,
     ownerToken: row.owner_token,
+    authorName: row.author_name || null,
     createdAt: row.created_at,
     fromCloud: true
   };
@@ -407,10 +421,15 @@ function renderCard(h) {
       </article>`;
   }
 
+  const author = h.isPublic
+    ? (h.authorName ? escapeHtml(h.authorName) : '匿名')
+    : '私密';
+  const authorHtml = `<span style="color:var(--soft);font-size:12px;">— ${author}${isMine ? '（你）' : ''}</span>`;
   return `
     <article class="note-card ${h.isPublic ? '' : 'private'}">
       <div class="note-quote">${escapeHtml(h.textContent)}</div>
       ${h.comment ? `<div class="note-comment">${escapeHtml(h.comment)}</div>` : ''}
+      <div style="margin-top:6px;text-align:right;">${authorHtml}</div>
       <div class="note-meta">
         ${tagsHtml}
         ${sourceHtml}
@@ -551,6 +570,42 @@ document.querySelectorAll('.scope-toggle button').forEach(btn => {
   };
 });
 
+function refreshNameUI() {
+  const name = localStorage.getItem(LS_NAME_KEY) || '';
+  const input = document.getElementById('display-name-input');
+  if (input) input.value = name;
+  const hint = document.getElementById('display-name-hint');
+  if (hint) {
+    hint.textContent = name
+      ? `当前：${name}（新公开笔记会自动署名）`
+      : '当前：匿名';
+  }
+}
+
+window.saveDisplayName = async function(applyToAll) {
+  const input = document.getElementById('display-name-input');
+  const name = (input.value || '').trim();
+  localStorage.setItem(LS_NAME_KEY, name);
+
+  // Update local cache
+  state.localAll = loadLocal().map(h => h.ownerToken === OWNER_TOKEN ? { ...h, authorName: name || null } : h);
+  localStorage.setItem(LS_KEY, JSON.stringify(state.localAll));
+
+  if (applyToAll && supa) {
+    const { data, error } = await supa.rpc('set_author_name', {
+      p_token: OWNER_TOKEN, p_name: name
+    });
+    if (error) { alert('云端更新失败：' + error.message); return; }
+    // refresh cloud copy locally
+    state.cloudPublic = state.cloudPublic.map(h =>
+      h.ownerToken === OWNER_TOKEN ? { ...h, authorName: name || null } : h
+    );
+    alert(`已更新 ${data} 条公开笔记的署名`);
+  }
+  refreshNameUI();
+  render();
+};
+
 window.exportLocalMarkdown = function() {
   const all = loadLocal();
   if (!all.length) { alert('本地没有划线'); return; }
@@ -583,6 +638,7 @@ window.exportLocalMarkdown = function() {
 (async function init() {
   state.localAll = loadLocal();
   state.cloudPublic = await loadCloud();
+  refreshNameUI();
   renderTagList();
   render();
 })();
